@@ -1,17 +1,1 @@
-# Road Runner Quickstart
-
-An example FTC project using [Road Runner](https://github.com/acmerobotics/road-runner). **Note:** Road Runner is in alpha and many of its APIs are incubating.
-
-## Installation
-
-For more detailed instructions on getting Road Runner setup in your own project, see the [Road Runner README](https://github.com/acmerobotics/road-runner#core).
-
-1. Download or clone this repo with `git clone https://github.com/acmerobotics/road-runner-quickstart`.
-
-1. Open the project in Android Studio and build `TeamCode` like any other `ftc_app` project.
-
-1. If you have trouble with multidex, enable proguard by changing `useProguard` to `true` in `build.common.gradle`.
-
-## Documentation
-
-Check out the new [online quickstart documentation](https://acme-robotics.gitbook.io/road-runner/quickstart/introduction).
+Because EasyOpenCv depends on OpenCV-Repackaged, you will also need to copy libOpenCvAndroid453.so from the /doc/native_libs folder of that repo into the FIRST(sdcard/FIRST in Android Studio File Transfer) folder on the USB storage of the Robot Controller (i.e. connect the Robot Controller to your computer with a USB cable, put it into MTP mode, browse the contents of the file system, and drag 'n drop the file into the "FIRST" folder at the top level of the filesystem). Note that Control Hubs default to MTP mode and thus should be recognized immediately upon plugging it in. For Mac, you will either need to use the Android File Transfer program, or you can use the built-in file explorer side pane in Android Studio.
