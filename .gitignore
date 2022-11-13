@@ -89,7 +89,15 @@ lint/tmp/
 
 .DS_Store
 .idea
+<<<<<<< HEAD
 .project
 .classpath
 .settings/
+=======
+.idea/
+.project
+.classpath
+.settings/
+*.hprof
+>>>>>>> dev
 *.swp
