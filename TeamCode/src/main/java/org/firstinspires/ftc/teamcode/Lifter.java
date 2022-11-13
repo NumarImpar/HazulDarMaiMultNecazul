@@ -15,8 +15,6 @@ public class Lifter
         leftLifter = hardwareMap.get(DcMotorEx.class, "lifterLeft");
         rightLifter = hardwareMap.get(DcMotorEx.class, "lifterRight");
 
-        lifterEncoder = new Encoder(leftLifter);
-
         leftLifter.setDirection(DcMotorSimple.Direction.FORWARD);
         rightLifter.setDirection(DcMotorSimple.Direction.REVERSE);
 

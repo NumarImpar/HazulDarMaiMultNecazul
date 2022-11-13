@@ -44,7 +44,7 @@ public class Motortesting extends LinearOpMode {
             if(gamepad2.a == true) {
                 while (opModeIsActive()) {
 
-                    currentPosition = lifter.lifterEncoder.getCurrentPosition();
+                    currentPosition = lifter.leftLifter.getCurrentPosition();
 
                     correction = controller.update(currentPosition) / targetPosition;
                     power = Range.clip(correction, 0.1, maxPower);
