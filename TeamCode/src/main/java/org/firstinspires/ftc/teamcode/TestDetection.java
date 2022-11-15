@@ -20,12 +20,12 @@ public class TestDetection extends LinearOpMode {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 	webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "eye"), cameraMonitorViewId);
 
-	webcam.setPipeline(pipeline);
 	webcam.setMillisecondsPermissionTimeout(3000);
 	webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener(){
 	    @Override
 	    public void onOpened(){
 	        webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+	        webcam.setPipeline(pipeline);
 	    }
 
 	    @Override

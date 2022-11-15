@@ -26,7 +26,7 @@ import org.opencv.imgproc.Imgproc;
 
 public class AprilTagsPipeline extends OpenCvPipeline {
     private long detectorPtr;
-    private Mat toGray = new Mat();
+    private Mat toGray;
     private long[] _detectionsPtr;
     public volatile int[] _detectionIds = new int[3];
     public volatile int[] __ids = new int[3];
@@ -78,6 +78,8 @@ public class AprilTagsPipeline extends OpenCvPipeline {
 	    return input;
 	}
 
+	if (input.empty()){return __;}
+	this.toGray = input.clone();
         Imgproc.cvtColor(input, this.toGray, Imgproc.COLOR_RGB2GRAY);
 
 	synchronized(this.lock1){
@@ -88,10 +90,18 @@ public class AprilTagsPipeline extends OpenCvPipeline {
 	}
 
         long _detections = AprilTagDetectorJNI.runApriltagDetector(this.detectorPtr, this.toGray.nativeObj);
+	if (_detections == 0){
+	    this._detectionIds = new int[] {0, 0, 0};
+	    return __;
+	}
         this._detectionsPtr = ApriltagDetectionJNI.getDetectionPointers(_detections);
         
 	synchronized(this.lock2) {
             for (int i = 0; i < this._detectionsPtr.length; i ++) {
+	       if (_detectionsPtr[i] == 0){
+	           this.__ids[i] = -1;
+		   continue;
+	       }
 	       int id = ApriltagDetectionJNI.getId(this._detectionsPtr[i]);
                if (i < 2){
 	           this.__ids[i] = id;
