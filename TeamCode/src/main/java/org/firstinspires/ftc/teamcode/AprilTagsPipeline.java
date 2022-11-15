@@ -26,7 +26,6 @@ import org.opencv.imgproc.Imgproc;
 
 public class AprilTagsPipeline extends OpenCvPipeline {
     private long detectorPtr;
-    private Mat toGray;
     private long[] _detectionsPtr;
     public volatile int[] _detectionIds = new int[3];
     public volatile int[] __ids = new int[3];
@@ -40,17 +39,12 @@ public class AprilTagsPipeline extends OpenCvPipeline {
     private Object lock1 = new Object();
     private Object lock2 = new Object();
 
-    public Mat __ = new Mat();
-
     public AprilTagsPipeline(float initDecimation, int[] targets) {
-        this.decimation = initDecimation;
+        super();
+	this.decimation = initDecimation;
 
         this.detectorPtr = AprilTagDetectorJNI.createApriltagDetector(AprilTagDetectorJNI.TagFamily.TAG_36h11.string, this.decimation, 2);
 	System.arraycopy(targets, 0, this._detectionIds, 0, 3);
-    }
-
-    @Override
-    public void init(Mat input){
         if (this.detectorPtr == 0){
 	    this.error = 1;
 	    this.kill();
@@ -78,9 +72,8 @@ public class AprilTagsPipeline extends OpenCvPipeline {
 	    return input;
 	}
 
-	if (input.empty()){return __;}
-	this.toGray = input.clone();
-        Imgproc.cvtColor(input, this.toGray, Imgproc.COLOR_RGB2GRAY);
+	if (input.empty()){return input;}
+        Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2GRAY);
 
 	synchronized(this.lock1){
 	    if(this._chDecimation) {
@@ -89,10 +82,10 @@ public class AprilTagsPipeline extends OpenCvPipeline {
 	    }
 	}
 
-        long _detections = AprilTagDetectorJNI.runApriltagDetector(this.detectorPtr, this.toGray.nativeObj);
+        long _detections = AprilTagDetectorJNI.runApriltagDetector(this.detectorPtr, input.nativeObj);
 	if (_detections == 0){
 	    this._detectionIds = new int[] {0, 0, 0};
-	    return __;
+	    return input;
 	}
         this._detectionsPtr = ApriltagDetectionJNI.getDetectionPointers(_detections);
         
@@ -129,13 +122,11 @@ public class AprilTagsPipeline extends OpenCvPipeline {
         }
 
 	ApriltagDetectionJNI.freeDetectionList(_detections);
-	return __;
+	return input;
     }
 
 
     public void kill(){
-       this.__.release();
-       this.toGray.release();
        AprilTagDetectorJNI.releaseApriltagDetector(this.detectorPtr);
     }
 }

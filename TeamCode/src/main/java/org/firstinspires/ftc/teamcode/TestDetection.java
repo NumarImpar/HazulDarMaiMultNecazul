@@ -25,6 +25,7 @@ public class TestDetection extends LinearOpMode {
 	    @Override
 	    public void onOpened(){
 	        webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+		try{Thread.sleep(30);}catch (InterruptedException e){;}
 	        webcam.setPipeline(pipeline);
 	    }
 
