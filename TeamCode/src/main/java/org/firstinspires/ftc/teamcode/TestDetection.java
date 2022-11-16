@@ -1,6 +1,6 @@
 package org.firstinsipres.ftc.teamcode;
 
-import org.firstinspires.ftc.teamcode.AprilTagsPipeline;
+import org.firstinspires.ftc.teamcode.*;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -25,7 +25,7 @@ public class TestDetection extends LinearOpMode {
 	    @Override
 	    public void onOpened(){
 	        webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
-		try{Thread.sleep(30);}catch (InterruptedException e){;}
+		try{Thread.sleep(3000);}catch (InterruptedException e){;}
 	        webcam.setPipeline(pipeline);
 	    }
 
@@ -40,21 +40,19 @@ public class TestDetection extends LinearOpMode {
     @Override
     public void runOpMode(){
         _init();
-        int cross = 0, circle = 0;	
+	ControllerInput controller1 = new ControllerInput(gamepad1);
 	waitForStart();
 
 	while(opModeIsActive()){
-	   cross = (gamepad1.cross)?(cross + 1):(0);
-	   circle = (gamepad1.circle)?(circle + 1):(0);
            if (gamepad1.square){
 	       telemetry.clearAll();
 	   }
 
-	   if (cross == 1){
+	   if (controller1.AOnce()){
 	       pipeline.setDecimation(pipeline.getDecimation() + 0.1f);
 	   }
 
-	   if (circle == 1){
+	   if (controller1.BOnce()){
 	       pipeline.setDecimation(pipeline.getDecimation() - 0.1f);
 	   }
 

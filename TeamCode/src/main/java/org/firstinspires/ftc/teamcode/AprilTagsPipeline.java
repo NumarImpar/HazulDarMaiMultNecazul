@@ -77,22 +77,26 @@ public class AprilTagsPipeline extends OpenCvPipeline {
 
 	synchronized(this.lock1){
 	    if(this._chDecimation) {
+		try{
 	        AprilTagDetectorJNI.setApriltagDetectorDecimation(this.detectorPtr, this.decimation);
+		} catch (IllegalArgumentException e ){;;}
 		this._chDecimation = false;
 	    }
 	}
 
-        long _detections = AprilTagDetectorJNI.runApriltagDetector(this.detectorPtr, input.nativeObj);
+	long _detections = 0;
+        try {
+        _detections = AprilTagDetectorJNI.runApriltagDetector(this.detectorPtr, input.nativeObj);
         this._detectionsPtr = ApriltagDetectionJNI.getDetectionPointers(_detections);
-        
+	} catch (IllegalArgumentException e ) {;;}
 	synchronized(this.lock2) {
+	    if (this._detectionsPtr == null){return input;}
             for (int i = 0; i < this._detectionsPtr.length; i ++) {
-	       if (_detectionsPtr[i] == 0){
-	           this.__ids[i] = -1;
-		   continue;
-	       }
-	       int id = ApriltagDetectionJNI.getId(this._detectionsPtr[i]);
-               if (i < 2){
+	       int id = -1;
+	       try {
+	       id = ApriltagDetectionJNI.getId(this._detectionsPtr[i]);
+	       } catch (IllegalArgumentException e) {;;}
+	       if (i < 2){
 	           this.__ids[i] = id;
 	       }
 	       if (id == this._detectionIds[0]){
