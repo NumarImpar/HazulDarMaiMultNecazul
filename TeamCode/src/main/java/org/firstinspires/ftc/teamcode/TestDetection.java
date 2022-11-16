@@ -14,7 +14,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
 public class TestDetection extends LinearOpMode {
 
     private OpenCvWebcam webcam;
-    private AprilTagsPipeline pipeline = new AprilTagsPipeline(3, new int[] {0, 1, 2});
+    private AprilTagsPipeline pipeline = new AprilTagsPipeline(3, new int[] {0, 312, 2});
     
     private void _init() {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -40,19 +40,21 @@ public class TestDetection extends LinearOpMode {
     @Override
     public void runOpMode(){
         _init();
-	
+        int cross = 0, circle = 0;	
 	waitForStart();
 
 	while(opModeIsActive()){
+	   cross = (gamepad1.cross)?(cross + 1):(0);
+	   circle = (gamepad1.circle)?(circle + 1):(0);
            if (gamepad1.square){
 	       telemetry.clearAll();
 	   }
 
-	   if (gamepad1.cross){
+	   if (cross == 1){
 	       pipeline.setDecimation(pipeline.getDecimation() + 0.1f);
 	   }
 
-	   if (gamepad1.circle){
+	   if (circle == 1){
 	       pipeline.setDecimation(pipeline.getDecimation() - 0.1f);
 	   }
 

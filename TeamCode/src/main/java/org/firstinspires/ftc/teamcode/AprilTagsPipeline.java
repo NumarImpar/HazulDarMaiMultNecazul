@@ -83,10 +83,6 @@ public class AprilTagsPipeline extends OpenCvPipeline {
 	}
 
         long _detections = AprilTagDetectorJNI.runApriltagDetector(this.detectorPtr, input.nativeObj);
-	if (_detections == 0){
-	    this._detectionIds = new int[] {0, 0, 0};
-	    return input;
-	}
         this._detectionsPtr = ApriltagDetectionJNI.getDetectionPointers(_detections);
         
 	synchronized(this.lock2) {
