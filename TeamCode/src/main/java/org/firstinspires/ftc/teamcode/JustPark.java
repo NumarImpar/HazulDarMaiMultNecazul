@@ -1,10 +1,11 @@
 package org.firstinsipres.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.*;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -12,12 +13,13 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@TeleOp
+@Autonomous
 public class JustPark extends LinearOpMode {
     public DcMotorEx LF, LB, RF, RB; 
     private OpenCvWebcam webcam;
     private AprilTagsPipeline pipeline = new AprilTagsPipeline(3, new int[] {0, 1, 2});
     private int actualTarget = -1;
+    public ElapsedTime timer;
     
     private void _init() {
         LF = hardwareMap.get(DcMotorEx.class, "LF");
@@ -61,10 +63,10 @@ public class JustPark extends LinearOpMode {
     public void park(int target) {
 	if (target < 0){
 	    // detection failed so parks in terminal
-	    LF.setPower(0.3);
-	    LB.setPower(-0.3);
-	    RF.setPower(-0.3);
-	    RB.setPower(0.3);
+	    LF.setPower(-0.3);
+	    LB.setPower(0.3);
+	    RF.setPower(0.3);
+	    RB.setPower(-0.3);
 	} else {
             LF.setPower(0.3);
             LB.setPower(0.3);
@@ -74,6 +76,10 @@ public class JustPark extends LinearOpMode {
 	try {
 	    Thread.sleep(300);
 	} catch (InterruptedException e){;;}
+        LF.setPower(0);
+        LB.setPower(0);
+        RB.setPower(0);
+        RF.setPower(0);
 
 	if (target == 0){
             LF.setPower(-0.3);
@@ -103,6 +109,8 @@ public class JustPark extends LinearOpMode {
 	waitForStart();
 
 	while(opModeIsActive()){
+	   timer  = new ElapsedTime();
+	   while (timer.seconds() < 5) {
 	   if (pipeline.targetFound != -1 && actualTarget == -1){
 	       actualTarget = pipeline.targetFound;
 	   
@@ -115,7 +123,7 @@ public class JustPark extends LinearOpMode {
 	       webcam.closeCameraDevice();
 	       try{pipeline.kill();} catch (Exception e){;;}
 	  }
-
+          }
 	  park(actualTarget);
 	}
 
