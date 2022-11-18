@@ -17,9 +17,8 @@ import org.openftc.easyopencv.OpenCvWebcam;
 public class JustPark extends LinearOpMode {
     public DcMotorEx LF, LB, RF, RB; 
     private OpenCvWebcam webcam;
-    private AprilTagsPipeline pipeline = new AprilTagsPipeline(3, new int[] {0, 1, 2});
+    private AprilTagsPipeline pipeline = new AprilTagsPipeline(2, new int[] {0, 1, 2});
     private int actualTarget = -1;
-    public ElapsedTime timer;
     
     private void _init() {
         LF = hardwareMap.get(DcMotorEx.class, "LF");
@@ -48,7 +47,7 @@ public class JustPark extends LinearOpMode {
 	    @Override
 	    public void onOpened(){
 	        webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
-		try{Thread.sleep(3000);}catch (InterruptedException e){;;}
+		try{Thread.sleep(1000);}catch (InterruptedException e){;;}
 	        webcam.setPipeline(pipeline);
 	    }
 
@@ -108,24 +107,22 @@ public class JustPark extends LinearOpMode {
         _init();
 	waitForStart();
 
-	while(opModeIsActive()){
-	   timer  = new ElapsedTime();
-	   while (timer.seconds() < 5) {
-	   if (pipeline.targetFound != -1 && actualTarget == -1){
-	       actualTarget = pipeline.targetFound;
+	while(true){
+	    actualTarget = pipeline.targetFound;
 	   
-	       telemetry.addLine(String.format("target: %d", actualTarget));
-	       if (pipeline._e != null) {
-	           telemetry.addLine(String.format("unknown error: %s", pipeline._e.getMessage()));
-	       }
-	       telemetry.update();
-	       webcam.stopStreaming();
-	       webcam.closeCameraDevice();
-	       try{pipeline.kill();} catch (Exception e){;;}
-	  }
-          }
-	  park(actualTarget);
+            telemetry.addLine(String.format("target: %d", actualTarget));
+	    if (pipeline._e != null) {
+	        telemetry.addLine(String.format("unknown error: %s", pipeline._e.getMessage()));
+	     }
+	     telemetry.update();
+	     if (pipeline.killThis){
+	        webcam.stopStreaming();
+	        webcam.closeCameraDevice();
+	        try{pipeline.kill();} catch (Exception e){;;}
+		break;
+	     }
 	}
+	  park(actualTarget);
 
     }
 }

@@ -38,6 +38,7 @@ public class AprilTagsPipeline extends OpenCvPipeline {
     
     private Object lock1 = new Object();
     private Object lock2 = new Object();
+    public boolean killThis = false;
 
     public AprilTagsPipeline(float initDecimation, int[] targets) {
         super();
@@ -71,6 +72,7 @@ public class AprilTagsPipeline extends OpenCvPipeline {
 	try{ if (this.error != 0){
 	    return input;
 	}
+	if (killThis){return input;}
 
 	if (input.empty()){return input;}
         Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2GRAY);
@@ -106,6 +108,7 @@ public class AprilTagsPipeline extends OpenCvPipeline {
 	       } else if (id == this._detectionIds[2]) {
 	          this.targetFound = 2;
 	       } 
+	       if (id >= 0){killThis=true;}
 	    }
         }
 
