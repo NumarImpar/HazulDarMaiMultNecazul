@@ -163,6 +163,10 @@ public class JustPark extends LinearOpMode {
 		// if opmode gets stopped kill the parkThread immediately and break out of the loop
 	        if (parkThread != null){
 		    parkThread.interrupt();
+		    LF.setPower(0);
+		    LB.setPower(0);
+		    RB.setPower(0);
+		    RF.setPower(0);
 		}
 		break;
 	    }
