@@ -23,11 +23,6 @@ public class Lifter implements Runnable {
     public PIDFController controllerDown = new PIDFController(new PIDCoefficients(1, 0, 0));
     public PIDFController controllerUp = new PIDFController(new PIDCoefficients(11, 0, 0));
 
-    /*public enum MODE{
-        AUTO,
-        MANUAL;
-    }*/
-
     public volatile boolean kill = false;
 
     public volatile double targetTicks = 0;
@@ -141,45 +136,4 @@ public class Lifter implements Runnable {
             }
         }
     }
-
-
-    //_POS ESTE TARGET POSITION!!!
-    /*public void gotoPos(){
-        double currentPosition = getCurrentPosition();
-        double correction, power;
-        while (!kill) {
-            if (Math.abs(currentPosition - _pos) < 100) { telemetry.addLine("hello"); continue; }
-                //pid up
-                if (getCurrentPosition() < _pos) {
-                    telemetry.addData("u are fucked < pos --> up", 10);
-                    telemetry.update();
-                    correction = controllerUp.update(currentPosition) / (_pos);
-                    power = Range.clip(correction, 0.1, 0.6);
-                    setLifterPower(power);
-
-                    telemetry.addData("ticksCurrent", currentPosition);
-                    telemetry.addData("correction", correction);
-                    telemetry.addData("power", power);
-                    telemetry.update();
-                }
-                //pid down
-                else if (currentPosition > _pos) {
-                    telemetry.addData("u are fucked > pos --> down", 10);
-                    telemetry.update();
-                    correction = controllerDown.update(currentPosition) / (_pos - 100);
-                    power = Range.clip(correction, -0.1, 0.0);
-                    setLifterPower(power);
-
-                    telemetry.addData("ticksCurrent", currentPosition);
-                    telemetry.addData("correction", correction);
-                    telemetry.addData("power", power);
-                    telemetry.update();
-                } else {
-                    telemetry.addData("u are fucked", 10);
-                    telemetry.update();
-                    ;
-                    ; //pass
-                }
-        }
-    } */
 }
