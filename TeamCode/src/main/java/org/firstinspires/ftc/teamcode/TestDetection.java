@@ -57,7 +57,6 @@ public class TestDetection extends LinearOpMode {
 	       pipeline.setDecimation(pipeline.getDecimation() - 0.1f);
 	   }
 
-	   telemetry.addLine(String.format("error code: %d", pipeline.error));
 	   telemetry.addLine(String.format("decimation: %f.2", pipeline.getDecimation()));
 	   telemetry.addLine(String.format("ids: %d %d %d", pipeline.__ids[0], pipeline.__ids[1], pipeline.__ids[2]));
 	   telemetry.addLine(String.format("targets: %d %d %d", pipeline._detectionIds[0], pipeline._detectionIds[1], pipeline._detectionIds[2]));
