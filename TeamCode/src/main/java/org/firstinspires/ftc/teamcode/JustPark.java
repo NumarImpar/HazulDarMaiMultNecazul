@@ -107,7 +107,8 @@ public class JustPark extends LinearOpMode {
         _init();
 	waitForStart();
 
-	while(true){
+	boolean alrkilled = false;
+	while(opModeIsActive()){
 	    actualTarget = pipeline.targetFound;
 	   
             telemetry.addLine(String.format("target: %d", actualTarget));
@@ -119,9 +120,17 @@ public class JustPark extends LinearOpMode {
 	        webcam.stopStreaming();
 	        webcam.closeCameraDevice();
 	        try{pipeline.kill();} catch (Exception e){;;}
+		alrkilled= true;
 		break;
 	     }
 	}
+	if (!alrkilled){
+	        webcam.stopStreaming();
+	        webcam.closeCameraDevice();
+	        try{pipeline.kill();} catch (Exception e){;;}
+	}
+
+	if (opModeIsActive())
 	  park(actualTarget);
 
     }
