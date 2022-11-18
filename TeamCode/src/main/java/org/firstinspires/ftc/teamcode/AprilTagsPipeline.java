@@ -30,7 +30,7 @@ public class AprilTagsPipeline extends OpenCvPipeline {
     public volatile int[] _detectionIds = new int[3];
     public volatile int[] __ids = new int[3];
     public volatile int targetFound = -1;
-
+    public Exception _e;
     public int error = 0;
 
     private float decimation;
@@ -68,7 +68,7 @@ public class AprilTagsPipeline extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat input){
-	if (this.error != 0){
+	try{ if (this.error != 0){
 	    return input;
 	}
 
@@ -100,29 +100,20 @@ public class AprilTagsPipeline extends OpenCvPipeline {
 	           this.__ids[i] = id;
 	       }
 	       if (id == this._detectionIds[0]){
-	          if (this.targetFound != -1){
-	              this.targetFound = -2;
-	          } else {
-	              this.targetFound = 0;
-	          }
+	          this.targetFound = 0;
 	       } else if (id == this._detectionIds[1]) {
-	          if (this.targetFound != -1){
-	              this.targetFound = -2;
-	          } else {
-	              this.targetFound = 1;
-	          }
+	          this.targetFound = 1;
 	       } else if (id == this._detectionIds[2]) {
-	          if (this.targetFound != -1){
-	              this.targetFound = -2;
-	          } else {
-	              this.targetFound = 2;
-	          }
+	          this.targetFound = 2;
 	       } 
 	    }
         }
 
+	try{
 	ApriltagDetectionJNI.freeDetectionList(_detections);
+	} catch (IllegalArgumentException e ) {;;}
 	return input;
+	} catch (Exception e) {_e = e; return input;}
     }
 
 

@@ -15,6 +15,7 @@ public class TestDetection extends LinearOpMode {
 
     private OpenCvWebcam webcam;
     private AprilTagsPipeline pipeline = new AprilTagsPipeline(3, new int[] {0, 312, 2});
+    private int actualTarget = -1;
     
     private void _init() {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -61,6 +62,10 @@ public class TestDetection extends LinearOpMode {
 	   telemetry.addLine(String.format("ids: %d %d %d", pipeline.__ids[0], pipeline.__ids[1], pipeline.__ids[2]));
 	   telemetry.addLine(String.format("targets: %d %d %d", pipeline._detectionIds[0], pipeline._detectionIds[1], pipeline._detectionIds[2]));
 	   telemetry.addLine(String.format("target found: %d", pipeline.targetFound));
+
+	   if (pipeline.targetFound != -1 && actualTarget == -1){
+	       actualTarget = pipeline.targetFound;
+	   }
 	   telemetry.update();
 	}
 
