@@ -1,3 +1,5 @@
+package org.firstinspires.ftc.teamcode;
+
 import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
@@ -64,12 +66,29 @@ public class Lifter implements Runnable {
         return lifterEncoder.getCorrectedVelocity();
     }
 
-    public void setTargetTicks(double ticks) { this.targetTicks = ticks;}
+    double wait = 0;
+
+    public void setTargetTicks(double ticks) {
+        this.targetTicks = ticks;
+    }
+
+    public volatile long waitLifter = 0;
 
     @Override
     public void run(){
 
+        //ca sa astepte lifter-ul
+        if(waitLifter > 0){
+            try {
+                Thread.sleep(waitLifter);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
+
         while (!kill && !Thread.currentThread().isInterrupted()) {
+
             //never run too fast
             if (SystemClock.uptimeMillis() - lastMillis < 100) {
                 continue;
@@ -80,12 +99,11 @@ public class Lifter implements Runnable {
 
             if (targetTicks != prevTicks) {
                 //go to new target
-
                 double target = targetTicks;
                 double currentPosition = getCurrentPosition();
                 double initialAbsError = Math.abs(currentPosition - target);
 
-                if (initialAbsError < 100) {
+                if (initialAbsError < 50) { //inainte 100; posibil sa dea erori acest 25
                     prevTicks = targetTicks;
                     continue;
                 }
@@ -95,14 +113,17 @@ public class Lifter implements Runnable {
                     prevTicks = targetTicks;
                     controllerUp.reset();
                     controllerUp.setTargetPosition(target);
+
                     while (!Thread.currentThread().isInterrupted() && targetTicks == prevTicks) {
+
                         currentPosition = getCurrentPosition();
+
                         double correction = controllerUp.update(currentPosition) / (initialAbsError);
                         double power = Range.clip(correction, 0.1, 0.6);
                         setLifterPower(power);
 
                         telemetry.addData("target", target);
-			telemetry.addData("pos", currentPosition);
+			            telemetry.addData("pos", currentPosition);
                         telemetry.addData("abserror", initialAbsError);
                         telemetry.addData(" going up - ticksCurrent", currentPosition);
                         telemetry.addData("correction", correction);
@@ -113,17 +134,21 @@ public class Lifter implements Runnable {
                 else {
                     // go down
                     telemetry.log().clear();
+
                     prevTicks = targetTicks;
                     controllerDown.reset();
                     controllerDown.setTargetPosition(target);
+
                     while (!Thread.currentThread().isInterrupted() && targetTicks == prevTicks) {
+
                         currentPosition = getCurrentPosition();
+
                         double correction = controllerDown.update(currentPosition) / (initialAbsError);
-                        double power = Range.clip(correction, -0.3, 0.0);
+                        double power = Range.clip(correction, -0.25, 0.0);
                         setLifterPower(power);
 
                         telemetry.addData("ticksCurrent", currentPosition);
-			telemetry.addData("pos", currentPosition);
+			            telemetry.addData("pos", currentPosition);
                         telemetry.addData("target", target);
                         telemetry.addData("correction", correction);
                         telemetry.addData("power", power);
