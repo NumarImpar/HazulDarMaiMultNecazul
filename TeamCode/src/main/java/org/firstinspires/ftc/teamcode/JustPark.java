@@ -19,6 +19,7 @@ public class JustPark extends LinearOpMode {
     private OpenCvWebcam webcam;
     private AprilTagsPipeline pipeline = new AprilTagsPipeline(2, new int[] {0, 1, 2});
     private int actualTarget = -1;
+    private boolean cameraOK = true;
     
     private void _init() {
         LF = hardwareMap.get(DcMotorEx.class, "LF");
@@ -61,6 +62,7 @@ public class JustPark extends LinearOpMode {
 	    public void onError(int errorCode){
 	        telemetry.addLine(String.format("canera failed to open: errcode %d", errorCode));  
 		telemetry.update();
+		cameraOK = false;
 	    }
 	});
     }
@@ -72,18 +74,18 @@ public class JustPark extends LinearOpMode {
 	Thread parkThread = new Thread(() -> {
 	    if (target < 0){
 	        // detection failed so parks in terminal
-	        LF.setPower(-0.3);
-	        LB.setPower(0.3);
-	        RF.setPower(0.3);
-	        RB.setPower(-0.3);
+	        LF.setPower(-0.5);
+	        LB.setPower(0.5);
+	        RF.setPower(0.5);
+	        RB.setPower(-0.5);
 	    } else {
-                LF.setPower(0.3);
-                LB.setPower(0.3);
-                RB.setPower(0.3);
-                RF.setPower(0.3);
+                LF.setPower(0.5);
+                LB.setPower(0.5);
+                RB.setPower(0.5);
+                RF.setPower(0.5);
            }
 	   try {
-	        Thread.sleep(300);
+	        Thread.sleep(1000);
 	   } catch (InterruptedException e){
 		;;
 	   }
@@ -93,20 +95,20 @@ public class JustPark extends LinearOpMode {
            RF.setPower(0);
 
 	   if (target == 0){
-               LF.setPower(-0.3);
-               LB.setPower(0.3);
-               RB.setPower(0.3);
-               RF.setPower(-0.3);
+               LF.setPower(-0.5);
+               LB.setPower(0.5);
+               RB.setPower(0.5);
+               RF.setPower(-0.5);
 	   } else if (target == 1){
                ;; //pass	
 	   } else if (target == 2){
-               LF.setPower(0.3);
-               LB.setPower(-0.3);
-               RB.setPower(-0.3);
-               RF.setPower(0.3);
+               LF.setPower(0.5);
+               LB.setPower(-0.5);
+               RB.setPower(-0.5);
+               RF.setPower(0.5);
 	   }
 	   try {
-	       Thread.sleep(300);
+	       Thread.sleep(1000);
 	   } catch (InterruptedException e){
 	       ;;
 	   }
@@ -129,6 +131,7 @@ public class JustPark extends LinearOpMode {
 	boolean alrkilled = false; // used to make sure all camera threads are killed at stop
 
 	while(opModeIsActive()){
+	    if (!cameraOK){alrkilled = true; break;}
 	    actualTarget = pipeline.targetFound;
 	   
             telemetry.addLine(String.format("target: %d", actualTarget));
@@ -155,7 +158,7 @@ public class JustPark extends LinearOpMode {
         // perform the parking
 	Thread parkThread = null;
 	if (opModeIsActive()){
-	    parkThread = park(actualTarget);
+	    parkThread = park(1);
         }
 
 	while (true){

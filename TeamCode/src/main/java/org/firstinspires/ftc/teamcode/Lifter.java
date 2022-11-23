@@ -22,12 +22,12 @@ public class Lifter implements Runnable {
     public HardwareMap hardwareMap;
     private Telemetry telemetry;
 
-    public PIDFController controllerDown = new PIDFController(new PIDCoefficients(1, 0, 0));
-    public PIDFController controllerUp = new PIDFController(new PIDCoefficients(11, 0, 0));
+    public volatile double targetTicks = 0;
+    public PIDFController controllerDown = new PIDFController(new PIDCoefficients(1.8, 0, 1), 0, 0, 0, (p, v)->{return (lifterEncoder.getCurrentPosition() < 1000 && lifterEncoder.getCurrentPosition() > targetTicks)?(-200d):(0d);});
+    public PIDFController controllerUp = new PIDFController(new PIDCoefficients(9.5, 0, 4.8), 0, 0, 0, (p, v)->{return (lifterEncoder.getCurrentPosition() < 1000)?(100d):(0d);});
 
     public volatile boolean kill = false;
 
-    public volatile double targetTicks = 0;
     private double prevTicks = 0;
 
     private long lastMillis = 0;
