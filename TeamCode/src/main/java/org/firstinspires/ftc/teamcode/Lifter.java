@@ -145,6 +145,8 @@ public class Lifter implements Runnable {
 
                         double correction = controllerDown.update(currentPosition) / (initialAbsError);
                         double power = Range.clip(correction, -0.25, 0.0);
+
+			if (target > 700 && Math.abs(target - currentPosition) < 50){power = 0.05;}
                         setLifterPower(power);
 
                         telemetry.addData("ticksCurrent", currentPosition);
