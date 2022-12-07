@@ -23,8 +23,8 @@ public class Lifter implements Runnable {
     private Telemetry telemetry;
 
     public volatile double targetTicks = 0;
-    public PIDFController controllerDown = new PIDFController(new PIDCoefficients(1.8, 0, 1), 0, 0, 0, (p, v)->{return (lifterEncoder.getCurrentPosition() < 1000 && lifterEncoder.getCurrentPosition() > targetTicks)?(-200d):(0d);});
-    public PIDFController controllerUp = new PIDFController(new PIDCoefficients(9.5, 0, 4.8), 0, 0, 0, (p, v)->{return (lifterEncoder.getCurrentPosition() < 1000)?(100d):(0d);});
+    public PIDFController controllerDown = new PIDFController(new PIDCoefficients(3, 0, 1));//, 0, 0, 0, (p, v)->{return (lifterEncoder.getCurrentPosition() < 1000 && lifterEncoder.getCurrentPosition() > targetTicks)?(-200d):(0d);});
+    public PIDFController controllerUp = new PIDFController(new PIDCoefficients(13, 0, 3));//, 0, 0, 0, (p, v)->{return (lifterEncoder.getCurrentPosition() < 1000)?(100d):(0d);});
 
     public volatile boolean kill = false;
 
@@ -68,7 +68,7 @@ public class Lifter implements Runnable {
 
     double wait = 0;
 
-    public void setTargetTicks(double ticks) {
+    public void setTargetTicks(double waitLifter, double ticks) {
         this.targetTicks = ticks;
     }
 

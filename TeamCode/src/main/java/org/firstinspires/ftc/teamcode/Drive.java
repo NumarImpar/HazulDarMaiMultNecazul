@@ -1,7 +1,10 @@
+package org.firstinspires.ftc.teamcode;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.*;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
@@ -15,9 +18,6 @@ public class Drive extends LinearOpMode {
     DcMotorEx LF, LB, RF, RB;
     ControllerInput controller1, controller2;
 
-    int flag = 0;
-    int flag2 = 0;
-
     public static int forward = 1;
 
     @Override
@@ -27,8 +27,6 @@ public class Drive extends LinearOpMode {
         drive = new SampleMecanumDrive(hardwareMap);
         controller1 = new ControllerInput(gamepad1);
         controller2 = new ControllerInput(gamepad2);
-        double lastPos = 0.5;
-        int poz = 0;
 
         LF = drive.LF;
         LB = drive.LB;
@@ -40,113 +38,67 @@ public class Drive extends LinearOpMode {
         Thread lifterThread = new Thread(lifter);
         lifterThread.start();
 
-        boolean alrup = false;
-
         while (opModeIsActive()) {
 
             controller1.update();
             controller2.update();
 
-            //triunghi - poz intermediare
+            //right bumper - high
+            if(controller2.rightBumperOnce()){
+                lifter.setTargetTicks(0,2600);
+            }
+
+            //triunghi - poz intermediare - mid
             if(controller2.YOnce() && !gamepad2.start){
-                lifter.setTargetTicks(2700);
+                lifter.setTargetTicks(0,1700);
             }
 
-            //cerc - poz intermediare
+            //circle - cone out
             if(controller2.BOnce() && !gamepad2.start){
-                lifter.setTargetTicks(1900);
+                intake.spinReverseForMs(0,800);
             }
 
-            //patrat - poz intermediara
-            if(controller2.XOnce() && !gamepad2.start){
-                lifter.setTargetTicks(800);
+            //x - cone in
+            if (controller2.AOnce()&& !gamepad2.start) {
+                intake.spinForwardForMs(0,800);
             }
 
-            //arrow up arrow down brat fata spate --
 
-//            if (controller2.dpadUpOnce()){
-//                intake.moveIntake(0);
-//                //intake.switchState(true);
-//                alrup = false;
-//            }
-//            if (controller2.dpadDownOnce()){
-//                if (alrup){
-//                    intake.moveIntake(0.7);
-//                    alrup = false;
-//                } else {
-//                    intake.moveIntake(0.5);
-//                    alrup = true;
-//                }
-//            }
-            
+            //square - intake - pozitie de colectare
+            //explicatie mai jos
+            /*if left servo is at 0 then go at 0.4
+            //if left servo is at 1 then go at 0.7*/
+            if(controller2.XOnce() && !gamepad2.start) {
+                if (intake.leftServoIntake.getPosition() == 0) {
+                    intake.moveIntake(0.35);
+                } else if (intake.leftServoIntake.getPosition() == 1) {
+                    intake.moveIntake(0.65);
+                }
+            }
 
+            //arrow down - intake outside
             if(controller2.dpadDownOnce()){
-//                for(double i=lastPos; i>-1; i = i-0.005){
-                    intake.moveIntake(-1);
-                 //   lastPos = i;
-               // }
-            }
-            if(controller2.dpadUpOnce()){
-               // for(double i=lastPos; i<1; i = i+0.005){
                     intake.moveIntake(1);
-                //    lastPos = i;
-               // }
             }
 
+            //arrow up - intake inside
+            if(controller2.dpadUpOnce()){
+                    intake.moveIntake(0);
+            }
 
-//            //patrat - duce lift automat sus max
-//            if (controller2.XOnce() && flag == 0 && !gamepad2.start) {
-//                lifter.setTargetTicks(2500);
-//                flag = 1;
-//            }
-
-
-            //urca lifter-ul doar manual !!!!
-
-            //left bumper - auto target pos lifter = 50;
+            //left bumper - lifter down
             if(controller2.leftBumper()){
-                lifter.setTargetTicks(50);
+                lifter.setTargetTicks(0,50);
             }
 
-            //patrat - duce lift ul jos si baga inauntru de la orice pozitie
-            if (controller2.XOnce() && flag == 1 && !gamepad2.start) {
-               lifter.setTargetTicks(1500);
-                flag = 0;
-                intake.moveIntakeArm(1000, 0);
-                lifter.waitLifter = 500;
-                lifter.waitLifter = 0;
-                lifter.setTargetTicks(50);
-            }
-            //POSIBIL SA NU MEARGA FIX FAZA CU WAIT. DACA NU MERGE,
-            // DOAR LASA LIFTERUL SA COBOARE CU AIA INAUNTRU DOAR DE LA MAXIM
-
-            // x rotite intake
-            //get cone in
-           if (controller2.AOnce()&& !gamepad2.start) {
-                intake.spinForwardForMs(800);
-                flag2= 1;
-
+            //automatism
+            if(controller1.leftBumperOnce()){
+                lifterHighIntakeOutCone();
             }
 
-            //get cone out
-            if (controller2.dpadRightOnce()&& !gamepad2.start){
-                intake.spinReverseForMs(800);
-                flag2 = 0;
-
+            if(controller1.AOnce()){
+                collectFromInside();
             }
-
-//            //bumper dreapta / stanga - ridica lasa lifterul - manual
-//            if(controller2.rightBumper()){
-//                if(lifter.getCurrentPosition() < 2400) {
-//                    lifter.setTargetTicks(lifter.getCurrentPosition() + 60);
-//                }
-//            }
-//
-//            if(controller2.leftBumper()){
-//                if(lifter.getCurrentPosition() > 70) {
-//                    lifter.setTargetTicks(lifter.getCurrentPosition() - 5);
-//                }
-//            }
 
             if (controller1.rightBumper()) {
                 handleDrivingSlowed();
@@ -176,6 +128,39 @@ public class Drive extends LinearOpMode {
                         gamepad1.right_stick_x * 0.35
                 )
         );
+    }
+
+    //automatism - lifter high - intake out (if not already) - get cone out
+    private void lifterHighIntakeOutCone(){
+        lifter.setTargetTicks(0,2600);
+        if(intake.leftServoIntake.getPosition()==0){
+            intake.moveIntakeArm(200, 1);
+        }
+        //intake.spinReverseForMs(6000, 800);
+    }
+
+    //automatism - lifter down (from high) - intake in
+    private void lifterDownIntakeIn(){
+        lifter.setTargetTicks(800, 50);
+        if(intake.leftServoIntake.getPosition() != 0){
+            intake.moveIntakeArm(0, 0);
+        }
+    }
+
+    //automatism - lifter semi down - collect from front
+    private void collectFromInside(){
+        lifter.setTargetTicks(0, 1000);
+        if(intake.leftServoIntake.getPosition() != 0){
+            intake.moveIntakeArm(500, 0.3);
+        }
+    }
+
+    //automatism - lifter down - get cone in
+    private void lifterDownConeIn(){
+        lifter.setTargetTicks(0,50);
+        if(Math.abs(lifter.lifterEncoder.getCurrentPosition()-50)<30){
+            intake.spinForwardForMs(1000,800);
+        }
     }
 
 }

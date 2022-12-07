@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Intake{
     public CRServo leftCRServoIntake;
     public CRServo rightCRServoIntake;
-    public ElapsedTime timer;
+
     public ServoImplEx leftServoIntake;
     public ServoImplEx rightServoIntake;
 
@@ -26,6 +26,9 @@ public class Intake{
 	    leftServoIntake.setPwmRange(new PwmRange(500, 2500));
 	    rightServoIntake.setPwmRange(new PwmRange(500, 2500));
 
+        leftServoIntake.setPosition(0);
+        rightServoIntake.setPosition(1);
+
         leftCRServoIntake.setDirection(CRServo.Direction.REVERSE);
         rightCRServoIntake.setDirection(CRServo.Direction.FORWARD);
     }
@@ -35,29 +38,33 @@ public class Intake{
         rightCRServoIntake.setPower(_power2);
     }
 
-    public volatile boolean running = false;
 
     public void startSpin() {
         setCRServosIntakePower(0.3, 0.3);
-        running = true;
     }
 
     public void stopSpin() {
         setCRServosIntakePower(0.0, 0.0);
-        running = false;
     }
 
     public void startReverseSpin(){
         setCRServosIntakePower(-0.3, -0.3);
-        running = true;
     }
 
-    public Thread spinForwardForMs(long ms) {
+    public Thread spinForwardForMs(long sleep, long ms) {
 
         if(ms <= 0) return new Thread();
 
         Thread t = new Thread(() -> {
+
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             startSpin();
+
             try {
                 Thread.sleep(ms);
             } catch (InterruptedException e) {
@@ -70,11 +77,18 @@ public class Intake{
 	    return t;
     }
 
-    public Thread spinReverseForMs(long ms) {
+    public Thread spinReverseForMs(long sleep, long ms) {
 
         if(ms <= 0) return new Thread();
 
         Thread t = new Thread(() -> {
+
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             startReverseSpin();
             try {
                 Thread.sleep(ms);
@@ -90,8 +104,6 @@ public class Intake{
 
     public void moveIntakeArm(long wait, double pos) {
         new Thread(() -> {
-            if (Thread.currentThread().isInterrupted()) return; //paranoia
-
             if (wait != 0) {
                 try {
                     Thread.sleep(wait);
@@ -100,13 +112,13 @@ public class Intake{
                 }
             }
             leftServoIntake.setPosition(pos);
-            rightServoIntake.setPosition(- pos); //1-pos
+            rightServoIntake.setPosition(1-pos); //1-pos
         }).start();
     }
 
 
     public void moveIntake(double pos){
-        leftServoIntake.setPosition(Range.clip(pos, -1, 1));
-	    rightServoIntake.setPosition(Range.clip(- pos, -1, 1));
+        leftServoIntake.setPosition(Range.clip(pos, 0, 1));
+	    rightServoIntake.setPosition(Range.clip(1-pos, 0, 1));
     }
 }

@@ -1,3 +1,5 @@
+package testing;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -45,26 +47,17 @@ public class LifterTest extends LinearOpMode {
 */
         telemetry.addLine("Ready");
         telemetry.update();
+
+        int virgin = 0;
+
         waitForStart();
         Thread lifterThread = new Thread(lifter);
         lifterThread.start();
 
         while (opModeIsActive()) {
 
-            controller2.update();
-	    double target = 0;
 
-            if(controller2.AOnce()){
-                lifter.setTargetTicks(2500);
-		target = 2500;
-            }
-
-            if(controller2.BOnce()){
-                lifter.setTargetTicks(50);
-		target = 50;
-            }
-           
-	}
+        }
         lifterThread.interrupt();
     }
 }

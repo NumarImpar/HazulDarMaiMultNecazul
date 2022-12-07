@@ -1,4 +1,5 @@
-package org.firstinspires.ftc.teamcode;
+package autonomus;
+import com.acmerobotics.roadrunner.drive.MecanumDrive;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -17,7 +18,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
 
 //------JUST PARK USING TIMER + DETECTION----------------
 
-@Autonomous
+@Autonomous(name ="autoPark1", group = "_1auto")
 public class JustPark extends LinearOpMode {
 	public SampleMecanumDrive drive;
 	public ElapsedTime timer;
@@ -29,6 +30,8 @@ public class JustPark extends LinearOpMode {
 
 	private void _init() {
 		_initDetection();
+		timer = new ElapsedTime();
+		drive = new SampleMecanumDrive(hardwareMap);
 	}
 
 	private void _initDetection() {
@@ -67,6 +70,10 @@ public class JustPark extends LinearOpMode {
 
 				// detection failed so parks in 2
 				drive.setMotorPowers(0.4, 0.4, 0.4, 0.4);
+
+				telemetry.addLine("parkingspot 2 automat nedetectat");
+				telemetry.update();
+
 				while(timer.milliseconds() < 1750){
 					//wait for time to pass
 				}
@@ -76,12 +83,18 @@ public class JustPark extends LinearOpMode {
 			} else if (target == 0 && !checkParking ){
 				//parks in 1 (target 0 == sleeve 1)
 				drive.setMotorPowers(0.4, 0.4, 0.4, 0.4);
-				while(timer.milliseconds() < 1750){
+
+				telemetry.addLine("parkingspot 1");
+				telemetry.update();
+
+				while(timer.milliseconds() < 1500){
 					//wait for time to pass
 				}
 
 				drive.setMotorPowers(-0.4, 0.4, -0.4, 0.4);
-				while(timer.milliseconds() < 800){
+
+				timer.reset();
+				while(timer.milliseconds() < 1900){
 					//wait for time to pass
 				}
 				drive.setMotorPowers(0,0,0,0);
@@ -89,8 +102,12 @@ public class JustPark extends LinearOpMode {
 
 			} else if (target == 1 && !checkParking ){
 
-				//parks in 2 (target 0 == sleeve 2)
-				drive.setMotorPowers(0.4, 0.4, 0.4, 0.4);
+				//parks in 2 (target 1 == sleeve 2)
+				drive.setMotorPowers(0.5, 0.5, 0.5, 0.5);
+
+				telemetry.addLine("parkingspot 2");
+				telemetry.update();
+
 				while(timer.milliseconds() < 1750){
 					//wait for time to pass
 				}
@@ -100,12 +117,18 @@ public class JustPark extends LinearOpMode {
 			} else if (target == 2 && !checkParking ){
 				//parks in 3 (target 2 == sleeve 3)
 				drive.setMotorPowers(0.4, 0.4, 0.4, 0.4);
-				while(timer.milliseconds() < 1750){
+
+				telemetry.addLine("parkingspot 3");
+				telemetry.update();
+
+				while(timer.milliseconds() < 1500){
 					//wait for time to pass
 				}
 
 				drive.setMotorPowers(0.4, -0.4, 0.4, -0.4);
-				while(timer.milliseconds() < 800){
+
+				timer.reset();
+				while(timer.milliseconds() < 1900){
 					//wait for time to pass
 				}
 				drive.setMotorPowers(0,0,0,0);
@@ -154,7 +177,7 @@ public class JustPark extends LinearOpMode {
 		// perform the parking
 		Thread parkThread = null;
 		if (opModeIsActive()){
-			parkThread = park(1);
+			parkThread = park(actualTarget);
 		}
 
 		while (true){
