@@ -102,8 +102,15 @@ public class Intake{
 	    return t;
     }
 
-    public void moveIntakeArm(long wait, double pos) {
-        new Thread(() -> {
+    public double _pos = 0;
+    public void goToPos(double pos){_pos = pos;}
+    public boolean threadRunning = false;
+    public volatile boolean kill = false;
+
+    public Thread moveIntakeArm(long wait, double pos) {
+	goToPos(pos);
+	if (threadRunning) {return new Thread();}
+        Thread t  = new Thread(() -> {
             if (wait != 0) {
                 try {
                     Thread.sleep(wait);
@@ -111,9 +118,26 @@ public class Intake{
                     e.printStackTrace();
                 }
             }
-            leftServoIntake.setPosition(pos);
-            rightServoIntake.setPosition(1-pos); //1-pos
-        }).start();
+
+	    while (!kill){
+	    while (_pos == 0d && !kill){
+		if (Drive.virginIntake){
+                leftServoIntake.setPosition(0.3);
+                rightServoIntake.setPosition(0.7);
+		} else { 
+                leftServoIntake.setPosition(0);
+                rightServoIntake.setPosition(1);
+		}
+	    }
+
+	    while (_pos != 0 && !kill){
+                leftServoIntake.setPosition(_pos);
+                rightServoIntake.setPosition(1 - _pos);
+	    }}
+        });
+	t.start();
+	threadRunning = true;
+        return t;
     }
 
 

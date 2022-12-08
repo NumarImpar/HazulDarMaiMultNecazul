@@ -21,28 +21,30 @@ public class Drive extends LinearOpMode {
     ControllerInput controller1, controller2;
     
     public enum LifterStates {
-	HIGH, DOWN, MID, DRIVING_POS
+	HIGH, DOWN, MID, LOW
     }
     public enum DrivingStates {
 	PARKED, DRIVING_FAST, DRIVING_SLOW
     }
     public enum IntakeStates {
-	INSIDE, OUTSIDE, DRIVING_POS, OUTSIDE_DOWN
+	INSIDE, OUTSIDE, GET_CONE, OUTSIDE_DOWN
     }
     public volatile boolean actualSpinState = false;
     public volatile DrivingStates actualDrivingState = DrivingStates.PARKED;
     public volatile IntakeStates actualIntakeState = IntakeStates.INSIDE;
     public volatile LifterStates actualLifterState = LifterStates.DOWN;
     public static int forward = 1;
+    public static volatile boolean virginIntake = false; // mitigation for hitting lifter pane
+    public static volatile int virginThreshold = 300;
 
     public long lifterWait = 0;
     Consumer<LifterStates> goToLifterState = (s) -> {
         if (s == LifterStates.HIGH){
-	    lifter.setTargetTicks(lifterWait, 2600);
+	    lifter.setTargetTicks(lifterWait, 2650);
 	} else if (s == LifterStates.MID){
+	    lifter.setTargetTicks(lifterWait, 1700);
+	} else if (s == LifterStates.LOW) {
 	    lifter.setTargetTicks(lifterWait, 1000);
-	} else if (s == LifterStates.DRIVING_POS) {
-	    lifter.setTargetTicks(lifterWait, 700);
 	} else if (s == LifterStates.DOWN){
 	    lifter.setTargetTicks(lifterWait, 0);
 	}
@@ -56,7 +58,7 @@ public class Drive extends LinearOpMode {
 	    intake.moveIntakeArm(intakeWait, 0);
 	} else if (s == IntakeStates.OUTSIDE){
 	    intake.moveIntakeArm(intakeWait, 1);
-	} else if (s == IntakeStates.DRIVING_POS){
+	} else if (s == IntakeStates.GET_CONE){
 	    intake.moveIntakeArm(intakeWait, 0.3);
 	}
     };
@@ -66,13 +68,18 @@ public class Drive extends LinearOpMode {
 	    if (actualIntakeState != IntakeStates.OUTSIDE){
 	        intakeWait = 200;
 		intake.moveIntakeArm(0, 0.4);
+	    } else if (actualLifterState == LifterStates.HIGH){
+	    intakeWait = 930;
+	    virginThreshold = 200;
 	    } else {
-	    intakeWait = 1550;
+	        virginThreshold = 100;
 	    }
 	} else if (_intakestate == IntakeStates.OUTSIDE && _lifterstate == LifterStates.HIGH){
-	    intakeWait = 150;
-	} else if (_intakestate == IntakeStates.DRIVING_POS && _lifterstate == LifterStates.MID){
+	    intakeWait = 130;
+	} else if (_intakestate == IntakeStates.GET_CONE && _lifterstate == LifterStates.MID){
 	    intakeWait = 500; 
+	} else if (_intakestate == IntakeStates.OUTSIDE && _lifterstate == LifterStates.MID){
+	    lifterWait = 500;
 	} 
 	
 	goToIntakeState.accept(_intakestate);
@@ -103,6 +110,7 @@ public class Drive extends LinearOpMode {
         waitForStart();
 
         Thread lifterThread = new Thread(lifter);
+	Thread intakeThread = intake.moveIntakeArm(0, 0);
         lifterThread.start();
 
 	Thread drivingStateWatchdog = new Thread(() -> {
@@ -187,7 +195,7 @@ public class Drive extends LinearOpMode {
             }
 
             if(controller1.AOnce()){
-                goToState(LifterStates.DRIVING_POS, IntakeStates.DRIVING_POS);
+                goToState(LifterStates.LOW, IntakeStates.GET_CONE);
             }
 
 	    if(controller1.BOnce()){
@@ -203,7 +211,9 @@ public class Drive extends LinearOpMode {
             } else handleDriving();
         }
 
+	intake.kill = true;
         lifterThread.interrupt();
+	intakeThread.interrupt();
         drivingStateWatchdog.interrupt();
     }
 

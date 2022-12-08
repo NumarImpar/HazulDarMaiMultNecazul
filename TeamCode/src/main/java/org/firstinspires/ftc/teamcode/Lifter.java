@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.roadrunner.util.Encoder;
+import org.firstinspires.ftc.teamcode.*;
 
 public class Lifter implements Runnable {
     public DcMotorEx leftLifter;
@@ -118,6 +119,7 @@ public class Lifter implements Runnable {
 
                         currentPosition = getCurrentPosition();
 
+
                         double correction = controllerUp.update(currentPosition) / (initialAbsError);
                         double power = Range.clip(correction, 0.1, 0.6);
                         setLifterPower(power);
@@ -140,6 +142,11 @@ public class Lifter implements Runnable {
                     controllerDown.setTargetPosition(target);
 
                     while (!Thread.currentThread().isInterrupted() && targetTicks == prevTicks) {
+	                if (currentPosition >= Drive.virginThreshold && currentPosition <= 600){
+			    Drive.virginIntake = true;
+		        } else {
+		            Drive.virginIntake = false;
+		        }
 
                         currentPosition = getCurrentPosition();
 
@@ -149,11 +156,11 @@ public class Lifter implements Runnable {
 			if (target > 700 && Math.abs(target - currentPosition) < 50){power = 0.05;}
                         setLifterPower(power);
 
-                        telemetry.addData("ticksCurrent", currentPosition);
-			            telemetry.addData("pos", currentPosition);
+			telemetry.addData("pos", currentPosition);
                         telemetry.addData("target", target);
                         telemetry.addData("correction", correction);
                         telemetry.addData("power", power);
+			telemetry.addData("virgin", Drive.virginIntake);
                         telemetry.update();
                     }
                 }
