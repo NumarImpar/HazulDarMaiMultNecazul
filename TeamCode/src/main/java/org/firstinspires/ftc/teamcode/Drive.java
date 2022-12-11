@@ -143,7 +143,7 @@ public class Drive extends LinearOpMode {
 
             //right bumper - high
             if(controller2.rightBumperOnce()){
-                lifter.setTargetTicks(0,2600);
+                goToState(LifterStates.HIGH, IntakeStates.OUTSIDE);
             }
 
             //triunghi - poz intermediare - mid
@@ -176,12 +176,12 @@ public class Drive extends LinearOpMode {
 
             //arrow down - intake outside
             if(controller2.dpadDownOnce()){
-                    intake.moveIntake(1);
+                    intake.moveIntakeArm(0, 0);
             }
 
             //arrow up - intake inside
             if(controller2.dpadUpOnce()){
-                    intake.moveIntake(0);
+                    intake.moveIntakeArm(0, 1);
             }
 
             //left bumper - lifter down
@@ -189,22 +189,9 @@ public class Drive extends LinearOpMode {
                 lifter.setTargetTicks(0,50);
             }
 
-            //automatism
-            if(controller1.leftBumperOnce()){
-                goToState(LifterStates.HIGH, IntakeStates.OUTSIDE);
+            if(controller2.left_trigger > 20){
+                goToState(LifterStates.DOWN, IntakeStates.INSIDE);
             }
-
-            if(controller1.AOnce()){
-                goToState(LifterStates.LOW, IntakeStates.GET_CONE);
-            }
-
-	    if(controller1.BOnce()){
-	        goToState(LifterStates.MID, IntakeStates.OUTSIDE);
-	    }
-
-	    if (controller1.YOnce()){
-			goToState(LifterStates.DOWN, IntakeStates.INSIDE);
-	    }
 
             if (controller1.rightBumper()) {
                 handleDrivingSlowed();

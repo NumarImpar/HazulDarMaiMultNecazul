@@ -8,10 +8,15 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.PwmControl.*;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.acmerobotics.roadrunner.control.PIDCoefficients;
+import com.acmerobotics.roadrunner.control.PIDFController;
 
 public class Intake{
     public CRServo leftCRServoIntake;
     public CRServo rightCRServoIntake;
+
+    
+    public PIDFController controllerDown = new PIDFController(new PIDCoefficients(2, 0, 0));
 
     public ServoImplEx leftServoIntake;
     public ServoImplEx rightServoIntake;
