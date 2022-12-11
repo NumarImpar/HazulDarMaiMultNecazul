@@ -66,6 +66,23 @@ public class JustPark extends LinearOpMode {
 	// runOpMode() checks are done to interrupt the thread when stop is requested
 	public Thread park (int target) {
 		Thread parkThread = new Thread(() -> {
+                timer.reset();
+                drive.setMotorPowers(0.4, 0.4, 0.4, 0.4);
+				while(timer.milliseconds() < 4000 && opModeIsActive()){
+					//wait for time to pass
+				}
+                timer.reset();
+                drive.setMotorPowers(0, 0, 0, 0);
+				while(timer.milliseconds() < 1000&& opModeIsActive()){
+					//wait for time to pass
+				}
+                timer.reset();
+                drive.setMotorPowers(-0.4, -0.4, -0.4, -0.4);
+				while(timer.milliseconds() < 4500 && opModeIsActive()){
+					//wait for time to pass
+				}
+                timer.reset();
+                drive.setMotorPowers(0, 0, 0, 0);
 			if (target < 0 && !checkParking){
 
 				// detection failed so parks in 2
@@ -74,9 +91,10 @@ public class JustPark extends LinearOpMode {
 				telemetry.addLine("parkingspot 2 automat nedetectat");
 				telemetry.update();
 
-				while(timer.milliseconds() < 1750){
+				while(timer.milliseconds() < 1750 && opModeIsActive()){
 					//wait for time to pass
 				}
+                timer.reset();
 				drive.setMotorPowers(0,0,0,0);
 				checkParking = true;
 
@@ -87,16 +105,18 @@ public class JustPark extends LinearOpMode {
 				telemetry.addLine("parkingspot 1");
 				telemetry.update();
 
-				while(timer.milliseconds() < 1500){
+				while(timer.milliseconds() < 1500 && opModeIsActive()){
 					//wait for time to pass
 				}
+                timer.reset();
 
 				drive.setMotorPowers(-0.4, 0.4, -0.4, 0.4);
 
 				timer.reset();
-				while(timer.milliseconds() < 1900){
+				while(timer.milliseconds() < 1900 && opModeIsActive()){
 					//wait for time to pass
 				}
+                timer.reset();
 				drive.setMotorPowers(0,0,0,0);
 				checkParking = true;
 
@@ -108,9 +128,10 @@ public class JustPark extends LinearOpMode {
 				telemetry.addLine("parkingspot 2");
 				telemetry.update();
 
-				while(timer.milliseconds() < 1750){
+				while(timer.milliseconds() < 1750 && opModeIsActive()){
 					//wait for time to pass
 				}
+                timer.reset();
 				drive.setMotorPowers(0,0,0,0);
 				checkParking = true;
 
@@ -121,16 +142,17 @@ public class JustPark extends LinearOpMode {
 				telemetry.addLine("parkingspot 3");
 				telemetry.update();
 
-				while(timer.milliseconds() < 1500){
+				while(timer.milliseconds() < 1500 && opModeIsActive()){
 					//wait for time to pass
 				}
+                timer.reset();
 
 				drive.setMotorPowers(0.4, -0.4, 0.4, -0.4);
 
-				timer.reset();
-				while(timer.milliseconds() < 1900){
+				while(timer.milliseconds() < 1900 && opModeIsActive()){
 					//wait for time to pass
 				}
+				timer.reset();
 				drive.setMotorPowers(0,0,0,0);
 				checkParking = true;
 			}
@@ -153,6 +175,14 @@ public class JustPark extends LinearOpMode {
 			if (!cameraOK){alrkilled = true; break;}
 			actualTarget = pipeline.targetFound;
 
+            if (timer.milliseconds() > 3000 && opModeIsActive()){
+            alrkilled  = true;
+            webcam.stopStreaming();
+            webcam.closeCameraDevice();
+            pipeline.kill();
+
+            break;
+            }
 			telemetry.addLine(String.format("target: %d", actualTarget));
 			telemetry.update();
 
