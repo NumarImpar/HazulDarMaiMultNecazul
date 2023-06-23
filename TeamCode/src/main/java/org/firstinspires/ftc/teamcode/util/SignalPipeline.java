@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.util;
 
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Core;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
@@ -8,6 +10,8 @@ import org.opencv.imgproc.Imgproc;
 import org.openftc.apriltag.AprilTagDetectorJNI;
 import org.openftc.apriltag.ApriltagDetectionJNI;
 import org.openftc.easyopencv.OpenCvPipeline;
+import java.util.List;
+import java.util.ListIterator;
 
 /*
  ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
@@ -138,6 +142,40 @@ public class SignalPipeline extends OpenCvPipeline {
         Imgproc.putText(colorStream, detectionText, textOrigin, font, 1, red);
 
         colorStream.copyTo(_input); // restore the color to show to user
+    }
+
+    Mat buffer;
+    Mat hueOnly;
+    List<MatOfPoint> contours;
+    Rect largestContourBox = new Rect(0, 0, 0,  0);
+    final Scalar yellowLowHue = new Scalar(30), yellowHighHue = new Scalar(70);
+    final int minRectX = 100, maxRectX = 250;
+    public int correction = 0;
+    private void detectJunction(Mat _input){
+        _input.copyTo(buffer);
+
+        //Imgproc.medianBlur(buffer, buffer, 3); // Teh-Chin already does gaussian blur with a small kernel to remove noise
+        Imgproc.cvtColor(buffer, buffer, Imgproc.COLOR_RGB2HSV);
+
+	    Core.extractChannel(buffer, hueOnly, 0);
+
+        Core.inRange(hueOnly, yellowLowHue, yellowHighHue, hueOnly); // apply threshold
+        Imgproc.findContours(hueOnly, contours, null, Imgproc.RETR_CCOMP, Imgproc.CV_CONTOURS_MATCH_I3); // Teh-Chin chain detection algorithm
+                                                                                                         
+        ListIterator<MatOfPoint> iter = contours.listIterator();
+        while(iter.hasNext()){
+            Rect rect = Imgproc.boundingRect(iter.next());
+            if (rect.area() > largestContourBox.area()){
+                largestContourBox = rect;
+            }
+        }
+
+        if (largestContourBox.x < minRectX){ // positive correction means too much to the left
+            correction -= largestContourBox.x - minRectX;
+        }
+        if(largestContourBox.x + largestContourBox.width > maxRectX){ // negative correction means too much to the right
+            correction -= largestContourBox.x + largestContourBox.width - minRectX;
+        }
     }
 
     @Override

@@ -21,6 +21,12 @@ public class ControllerInput {
         gamepad = g;
     }
 
+    public ControllerInput(Gamepad g, double _left_trigger_thresh, double _right_trigger_thresh){
+        gamepad = g;
+        left_trigger_thresh = _left_trigger_thresh;
+        right_trigger_thresh = _right_trigger_thresh;
+    }
+
     void updateButtons() {
         if (gamepad.x) {
             ++x;
@@ -122,9 +128,29 @@ public class ControllerInput {
         right_stick_y = gamepad.right_stick_y;
     }
 
+    int left_trigger_counter = 0, right_trigger_counter = 0;
+    double left_trigger_thresh = 0d, right_trigger_thresh = 0d;
+
     void updateTriggers() {
         left_trigger = gamepad.left_trigger;
         right_trigger = gamepad.right_trigger;
+
+        if(left_trigger > left_trigger_thresh){
+            left_trigger_counter ++;
+        } else {
+            left_trigger_counter = 0;
+        }
+
+        if(right_trigger > right_trigger_thresh){
+            right_trigger_counter ++;
+        } else {
+            right_trigger_counter = 0;
+        }
+    }
+
+    public void setTriggerThresh(double left, double right){
+        left_trigger_thresh = left;
+        right_trigger_thresh = right;
     }
 
     public void update() {
@@ -255,5 +281,21 @@ public class ControllerInput {
 
     public boolean rightBumperOnce() {
         return 1 == right_bumper;
+    }
+
+    public boolean leftTrigger(){
+	    return left_trigger_counter;
+    }
+
+    public boolean rightTrigger(){
+	    return right_trigger_counter;
+    }
+
+    public boolean leftTriggerOnce(){
+        return left_trigger_counter == 1;
+    }
+
+    public boolean rightTriggerCounter(){
+        return right_trigger_counter == 1;
     }
 }

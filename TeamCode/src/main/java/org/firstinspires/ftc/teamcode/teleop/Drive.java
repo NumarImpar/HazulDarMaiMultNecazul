@@ -3,10 +3,11 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.lib.ControllerInput;
-import org.firstinspires.ftc.teamcode.mechanisms.Intake;
-import org.firstinspires.ftc.teamcode.mechanisms.Lifter;
+import org.firstinspires.ftc.teamcode.mechanisms.IntakeNou;
+import org.firstinspires.ftc.teamcode.mechanisms.LifterEx;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.util.Automatisms;
 
@@ -16,101 +17,117 @@ public class Drive extends LinearOpMode {
 
     public SampleMecanumDrive drive;
     private ControllerInput controller1, controller2;
-    private Automatisms automatism;
 
-    public Lifter lifter;
-    public Intake intake;
-
-    public Lifter.LIFTER_LEVEL currentLifterState;
-    public Intake.INTAKE_STATE currentIntakeState;
-
-    protected Thread intakeThread, lifterThread;
+    public LifterEx lifter;
+    public IntakeNou intake;
 
     public static volatile boolean here = false;
 
     private enum DRIVE_MODE{
         MANUAL, //driver controlls everything
-        AUTO    //uses automatisms
+        AUTO,   //uses automatisms
+        HYBRID
+        //auto currently disabled
+        //manual currently disabled
     }
 
     private DRIVE_MODE driveMode;
 
-    public boolean paConIsInside = true;
-
-    private void handleManualControl(ControllerInput _controller){
-        lifter.manual = true;
-
-        if(_controller.rightBumperOnce()){
-            lifter.setManualPower(-0.2);
-        }
-
-        if(_controller.leftBumperOnce()){
-            intake.swingSetTargetTicks(0, -500);
-        }
-    }
+    /*private void handleManualControl(ControllerInput _controller){
+     
+    }*/
 
 
-    private void handleAutomizedControl(ControllerInput _controller) {
-        if (_controller.options()) { // skip if switching player
+    /*private void handleAutomizedControl(ControllerInput _controller) {
+
+    }*/
+
+    private int deg = 10;
+    private boolean lateralGrab = false;
+    private double sliderPos = 1d;
+    private final double kSlide = .0005;
+    private void handleHybridControl(ControllerInput _controller) {
+        if(_controller.options()){ // skip if switching player
             return;
         }
 
-        //intake out (swing)
-        if(_controller.dpadUpOnce()){
-            intake.swingSetTargetTicks(0, Intake.INTAKE_STATE.OUTSIDE.ticks);
-            currentIntakeState = Intake.INTAKE_STATE.OUTSIDE;
+        // toggle claw
+        // left trigger once is a new function in ControllerInput
+        // if it doesnt work change it for something else
+        if(_controller.leftTriggerOnce()){
+            intake.clawToggle(0);
         }
 
-        //intake in (swing)
-        if(_controller.dpadDownOnce()){
-            intake.swingSetTargetTicks(0, Intake.INTAKE_STATE.INSIDE.ticks);
-            currentIntakeState = Intake.INTAKE_STATE.INSIDE;
+        // go to high - lifter
+        // previous high was at 2700 but its not really useful anymore
+        if(_controller.triangleOnce()){
+            lifter.setTargetTicks(0, 1800);
         }
 
-        //low
-        if (_controller.circleOnce()) {
-            lifter.setTargetTicks(0, Lifter.LIFTER_LEVEL.LOW.ticks);
-            currentLifterState = Lifter.LIFTER_LEVEL.LOW;
+        // go to mid - lifter
+        // previous mid was 1800
+        if(_controller.squareOnce()){
+            lifter.setTargetTicks(0, 1000);
         }
 
-        //down cu intake unde era
-        if(_controller.leftBumper()) {
-            lifter.setTargetTicks(0, Lifter.LIFTER_LEVEL.DOWN.ticks);
-            currentLifterState = Lifter.LIFTER_LEVEL.DOWN;
+        // go to down - lifter
+        // init is at 0 but that position lets the claw hang dangerously close to the tiles
+        if(_controller.crossOnce()){
+            lifter.setTargetTicks(0, 200);
         }
 
-        //poz de colectare
-        if (_controller.squareOnce()) {
-            if (currentIntakeState == Intake.INTAKE_STATE.OUTSIDE){
-                intake.swingSetTargetTicks(0, 1100);
+        // toggle 180 - 10 deg intake
+        if(_controller.circleOnce()){
+            if(deg < 100){
+                deg = 180;
             } else {
-                intake.swingSetTargetTicks(0, 30);
+                deg = 10;
+            }
+
+            intake.setTargetDeg(deg);
+        }
+
+        // note that after a lateral grab one can rotate the intake to stack cones
+        // on deg > 100 lateral grab clears automatically
+        if(deg > 100){
+            intake.rotateClawToAngle(180);
+            lateralGrab = false;
+        } else {
+            if(!lateralGrab){
+                intake.rotateClawToAngle(0);
             }
         }
 
-        if (_controller.crossOnce()) {
-            lifter.setTargetTicks(0, 800);
-            currentLifterState = Lifter.LIFTER_LEVEL.LOW;
+        // lateral grab - might work on fallen down cones
+        if(_controller.leftBumperOnce()){
+            if(! lateralGrab){
+                if(deg < 50) { // lateral grab has no purpose in the air, so put this to prevent accidental presses
+                    intake.rotateClawToAngle(90);
+                    lateralGrab = true;
+                }
+            } else {
+                lateralGrab = false;
+                intake.rotateClawToAngle(0);
+            }
         }
 
-        //cone in/out while pressing
-        if (_controller.left_trigger > 0.5) {
-            intake.setCRServosPow(0.8);
-        } else if (_controller.right_trigger > 0.5) {
-            intake.setCRServosPow(-0.8);
-        } else {
-            intake.setCRServosPow(0.0);
+        // extend slider slowly with right_bumper_x
+        if(_controller.right_bumper_x > .3){
+            sliderPos -= right_bumper_x * kSlide;
+            sliderPos = Range.clip(sliderPos, .4, 1d);
+            intake.extendSlider(0, sliderPos);
         }
 
-        //high intake unde era
-         if(_controller.rightBumper()){
-            lifter.setTargetTicks(0, Lifter.LIFTER_LEVEL.HIGH.ticks);
-            currentLifterState = Lifter.LIFTER_LEVEL.HIGH;
+        // extend slider quickly - max length
+        if(_controller.dpadUpOnce()){
+            sliderPos = .4;
+            intake.extendSlider(0, sliderPos);
         }
 
-        if (_controller.triangleOnce()) {
-            lifter.setTargetTicks(0, Lifter.LIFTER_LEVEL.MID.ticks);
-            currentLifterState = Lifter.LIFTER_LEVEL.MID;
+        // retract slider quickly - min legth
+        if(_controller.dpadDownOnce()){
+            sliderPos = 1d;
+            intake.extendSlider(0, sliderPos);
         }
     }
 
@@ -126,24 +143,6 @@ public class Drive extends LinearOpMode {
                         -_controller.right_stick_x
                 )
         );
-        if (_controller.circleOnce() && paConIsInside) {
-            paConIsInside = false;
-            intake.paConOutside(0);
-        } else
-        if (_controller.circleOnce() && !paConIsInside) {
-            paConIsInside = true;
-            intake.paConInside(0);
-        }
-
-        //TODO !!!!
-//        if(_controller.rightBumper() && _controller.leftBumper()){
-//            lifter.manual = true;
-//            lifter.setManualPower(-0.1);
-//        }
-//        else{
-//            lifter.manual = false;
-//            lifter.setTargetTicks(0, lifter.getCurrentPosition());
-//        }
 
         drive.update();
     }
@@ -162,77 +161,91 @@ public class Drive extends LinearOpMode {
         drive.update();
     }
 
+    private void loopThroughDrivemodes(){
+        return;
+
+        if(driveMode == DRIVE_MODE.HYBRID){
+            driveMode = DRIVE_MODE.AUTO;
+        } else if (driveMode == DRIVE_MODE.AUTO){
+            driveMode = DRIVE_MODE.MANUAL;
+        } else {
+            driveMode = DRIVE_MODE.HYBRID;
+        }
+    }
+
     @Override
     public void runOpMode() throws InterruptedException {
-
-        driveMode = DRIVE_MODE.AUTO;
+        // ------------- INIT ----------------
+        driveMode = DRIVE_MODE.HYBRID;
 
         drive = new SampleMecanumDrive(hardwareMap);
-        lifter = new Lifter(hardwareMap, telemetry);
-        intake = new Intake(hardwareMap);
+        lifter = new LifterEx(hardwareMap);
+        intake = new IntakeNou(hardwareMap, lifter);
 
         controller1 = new ControllerInput(gamepad1);
-        controller2 = new ControllerInput(gamepad2);
+        controller2 = new ControllerInput(gamepad2, .5, .5);
 
-        automatism = new Automatisms(lifter, intake);
+        telemetry.addLine("mechanisms initialized. press START");
+        telemetry.update();
+        
+        // -------------- START --------------
+        waitForStart(); 
 
-        currentLifterState = Lifter.LIFTER_LEVEL.DOWN;
-        currentIntakeState = Intake.INTAKE_STATE.INIT;
+        intake.startIntakeThread();
+        lifter.startLifterThread();
+        intake.endClawProcessesForcibly();
 
-        intake.spinFor(0,50, 0.1); //bug
-
-        waitForStart();
-
-        lifter.manual = false; //paranoia - de cand liftul se ridica singur
-
-        intakeThread = new Thread(intake);
-        lifterThread = new Thread(lifter);
-
-        lifterThread.start();
-        intakeThread.start();
-
+        // claw will push too much into the floor otherwise
+        // no need to wait until these finish since newer targets take priority in the run() functions
+        lifter.setTargetTicks(0, 200);
+        intake.setTargetDeg(0, 15);
+        
+        // ------------- DRIVE --------------
         while(opModeIsActive()){
-
             controller1.update();
             controller2.update();
-            telemetry.addData("here", here);
+
             telemetry.addData("mode", driveMode);
             telemetry.update();
 
-
-            //controller 2 - mechanisms n stuff
+            // controller 2
             switch(driveMode){
                 case MANUAL: {
-                    handleManualControl(controller2);
-
-                    if(controller2.shareOnce()){
-                        driveMode = DRIVE_MODE.AUTO;
-                    }
-
                     break;
                 }
-                case AUTO: { //rn stam doar pe cazul auto
-                    handleAutomizedControl(controller2);
-
-                    if(controller2.shareOnce()){
-                        driveMode = DRIVE_MODE.MANUAL;
-                    }
-
+                case AUTO: { 
+                    break;
+                }
+                case HYBRID: {
+                    handleHybridControl(controller2);
                     break;
                 }
             }
 
-            // controller 1 - chassis + ia lasa con
+            // change drive modes
+            if(controller2.shareOnce()){
+                loopThroughDrivemodes();
+            }
+
+            // controller 1
             if (controller1.rightBumper()) {
                 handleDrivingSlowed(controller1);
             } else {
                 handleDriving(controller1);
             }
+
+            if(lifter.getCurrentPosition() > 3000){
+                lifter.killLifterThread();
+                telemetry.setAutoClear(false);
+                telemetry.addLine("Lifter went too high unexpectedly. Thread killed. STOP and REINITIALIZE");
+                telemetry.update();
+            }
         }
 
-        lifter.kill = true;
-        intake.kill = true;
-
+        // --------------- STOP ----------------
+        intake.endClawProcessesForcibly();
+        lifter.killLifterThread();
+        intake.killIntakeThread();
     }
 }
 

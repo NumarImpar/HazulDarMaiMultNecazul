@@ -30,9 +30,10 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import java.util.Arrays;
 
-
+@Disabled
 @Autonomous (name = "testStanga")
 public class StangaHighMid extends LinearOpMode {
     public ElapsedTime timer = new ElapsedTime();

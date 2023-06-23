@@ -11,10 +11,11 @@ import org.firstinspires.ftc.teamcode.mechanisms.Lifter;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.util.Automatisms;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 /* A NU SE FOLOSI IN MECI LMAO*/
 
-
-@TeleOp
+@Disabled
+@TeleOp(name = "this is a MEME. DO NOT USE")
 public class DriveMEME extends LinearOpMode {
 
     public SampleMecanumDrive drive;
