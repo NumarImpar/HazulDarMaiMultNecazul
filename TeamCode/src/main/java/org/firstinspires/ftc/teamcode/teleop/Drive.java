@@ -11,8 +11,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.LifterEx;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.util.Automatisms;
 
-
-@TeleOp
+@TeleOp(name = "Drive nou", group = "PP Rebuild")
 public class Drive extends LinearOpMode {
 
     public SampleMecanumDrive drive;
@@ -84,17 +83,17 @@ public class Drive extends LinearOpMode {
                 deg = 10;
             }
 
-            intake.setTargetDeg(deg);
+            intake.setTargetDeg(0, deg);
         }
 
         // note that after a lateral grab one can rotate the intake to stack cones
         // on deg > 100 lateral grab clears automatically
         if(deg > 100){
-            intake.rotateClawToAngle(180);
+            intake.rotateClawToAngle(0, 180);
             lateralGrab = false;
         } else {
             if(!lateralGrab){
-                intake.rotateClawToAngle(0);
+                intake.rotateClawToAngle(0, 0);
             }
         }
 
@@ -102,18 +101,18 @@ public class Drive extends LinearOpMode {
         if(_controller.leftBumperOnce()){
             if(! lateralGrab){
                 if(deg < 50) { // lateral grab has no purpose in the air, so put this to prevent accidental presses
-                    intake.rotateClawToAngle(90);
+                    intake.rotateClawToAngle(0, 90);
                     lateralGrab = true;
                 }
             } else {
                 lateralGrab = false;
-                intake.rotateClawToAngle(0);
+                intake.rotateClawToAngle(0, 0);
             }
         }
 
-        // extend slider slowly with right_bumper_x
-        if(_controller.right_bumper_x > .3){
-            sliderPos -= right_bumper_x * kSlide;
+        // extend slider slowly with right_stick_x
+        if(_controller.right_stick_x > .3){
+            sliderPos -= _controller.right_stick_x * kSlide;
             sliderPos = Range.clip(sliderPos, .4, 1d);
             intake.extendSlider(0, sliderPos);
         }
@@ -162,10 +161,9 @@ public class Drive extends LinearOpMode {
     }
 
     private void loopThroughDrivemodes(){
-        return;
-
         if(driveMode == DRIVE_MODE.HYBRID){
-            driveMode = DRIVE_MODE.AUTO;
+            return;
+            //driveMode = DRIVE_MODE.AUTO;
         } else if (driveMode == DRIVE_MODE.AUTO){
             driveMode = DRIVE_MODE.MANUAL;
         } else {

@@ -20,6 +20,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySe
 import org.firstinspires.ftc.teamcode.util.SignalPipeline;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import kotlin.jvm.functions.Function0;
+import java.util.Random;
 
 import java.util.Arrays;
 
@@ -42,17 +43,17 @@ public class StangaNormal extends LinearOpMode {
         return drive.trajectorySequenceBuilder(_start)
             .UNSTABLE_addTemporalMarkerOffset(0d, () -> {
                 // place preload here
+                // actually e probabil mai bine ca dupa traiectorie sa aiba functie de placePreload()
             })
             .lineToLinearHeading(new Pose2d(-36, -10, Math.toRadians(200))).build();
     }
 
-    public TrajectorySequence pivotCorrection(@NonNull Pose2d _start){
+    /*public TrajectorySequence pivotCorrection(@NonNull Pose2d _start){
         return null;
-    }
+    }*/ // asta era valabila daca aveam camera pe claw si detectam pole-ul
 
-    public Pose2d place5Cones(@NonNull Pose2d _start){
-        // for the moment this is just one cone
-        Pose2d pose = _start;
+    public void place5Cones(){
+        // for the moment this is just one cone (if it works at all)
         lifter.setTargetTicks(0, 500);
         intake.setTargetDeg(0, 20);
 
@@ -65,7 +66,7 @@ public class StangaNormal extends LinearOpMode {
         intake.extendSlider(200, .4);
 
         sleep(200);
-        TrajectorySequence pivotCorrection = pivotCorrection(pose);
+        //TrajectorySequence pivotCorrection = pivotCorrection(pose);
         //drive.followTrajectorySequence(pivotCorrection);
         //pose = pivotCorrection.end();
             
@@ -75,11 +76,37 @@ public class StangaNormal extends LinearOpMode {
 
         intake.extendSlider(100, .4);
         intake.setTargetDeg(200, 20);
-        return pose;
     } 
 
     public TrajectorySequence toParkZone(@NonNull Pose2d _start, int _zone){
-        return null;
+        int x = -36;
+
+        if(_zone == -1){
+            Random lozNorocos = new Random();
+            _zone = lozNorocos.nextInt(3); // extragere la loto
+            telemetry.addData("choosing random parking zone", _zone);
+            telemetry.update();
+        }
+
+        if(_zone == 0) {
+            // parking zone #1
+            x = -10;
+        } else if (_zone == 2){
+            // parking zone #3
+            x = -57;
+        }
+        // for parking zone 2, x stays the same
+
+        return drive.trajectorySequenceBuilder(_start)
+            .addTemporalMarker(0, () -> {
+                intake.extendSlider(0, 1d);
+                intake.clawOpen();
+                intake.setTargetDeg(300, 0);
+                lifter.setTargetTicks(500, 100);
+                intake.rotateClawToAngle(0, 0);
+            })
+            .lineToLinearHeading(new Pose2d(x, -10, Math.toRadians(270)))
+            .build();
     }
      
 
@@ -87,21 +114,26 @@ public class StangaNormal extends LinearOpMode {
         lifter.setTargetTicks(0, 100);
         intake.setTargetDeg(200, 30);
         intake.clawSetPosition(250, .4);
+        intake.isClawOpen = false; // ensure calls to clawToggle actually toggle its state from closed to open
         //lifter.setTargetTicks(500, 500);
     }
 
     @Override
     public void runOpMode() throws InterruptedException {
         drive = new SampleMecanumDrive(hardwareMap);
-        camera = new Camera(hardwareMap);
+        camera = new Camera(hardwareMap); // clasa noua wrapper ca sa nu mai copiem initDetection in toate autourile
         lifter = new LifterEx(hardwareMap);
         intake = new IntakeNou(hardwareMap, lifter);
-        telemetry.setAutoClear(false);
+        telemetry.setAutoClear(false); // nu mai sterge telemetria la Telemetry.update(); trb sa dai Telemetry.clear() ca sa stergi
 
         // init camera and start april tag detection
         camera.initDetection(pipeline, telemetry);
+        sleep(1000);
+
         if (camera.ok){
             pipeline.startAprilTagDetection();
+            telemetry.addLine("camera initialized sucessfully");
+            telemetry.update();
         } else {
             telemetry.addLine("webcam failed! please RESTART!");
             telemetry.update();
@@ -126,34 +158,29 @@ public class StangaNormal extends LinearOpMode {
 
         telemetry.clear();
         pipeline.stopAprilTagDetection();
+        telemetry.addData("Sleeve", target + 1);
+        TrajectorySequence toParkZone = toParkZone(toStaticAutoPos.end(), target);
         camera.close();
 
         grabPreload();
         sleep(3000);
 
-        telemetry.addData("Sleeve", target + 1);
-        telemetry.update();
-
         telemetry.addLine("going to static auto position");
         telemetry.update();
+
         drive.setPoseEstimate(initialPoseLeft);
         drive.followTrajectorySequence(toStaticAutoPos);
+        // placePreload() maybe???
         
-        /*sleep(1000);
-        telemetry.clear();
-        telemetry.addData("Sleeve", target + 1);
-        telemetry.addLine("stacking cones");
-        telemetry.update();
-
-        //Pose2d poseAfterCorrections = place5Cones(toStaticAutoPos.end());
+        /*
+        sleep(1000);
+        
+        place5Cones();
         
         sleep(500);
-        telemetry.clear();
-        telemetry.addData("going to parking zone", target + 1);
-        telemetry.update();
-
-        //TrajectorySequence toParkZone = toParkZone(poseAfterCorrections, target);
-        //drive.followTrajectorySequence(toParkZone);*/
+       
+        drive.followTrajectorySequence(toParkZone);
+        */
         
         intake.endClawProcessesForcibly();
         intake.killIntakeThread();

@@ -284,11 +284,11 @@ public class ControllerInput {
     }
 
     public boolean leftTrigger(){
-	    return left_trigger_counter;
+	    return left_trigger_counter >= 1;
     }
 
     public boolean rightTrigger(){
-	    return right_trigger_counter;
+	    return right_trigger_counter >= 1;
     }
 
     public boolean leftTriggerOnce(){

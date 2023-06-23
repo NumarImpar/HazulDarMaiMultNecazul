@@ -76,12 +76,12 @@ public class IntakeNou implements Runnable {
 
     public boolean isClawOpen = true;
 
-    protected void clawClose(){
+    public void clawClose(){
         claw.setPosition(.35);
         isClawOpen = false;
     }
 
-    protected void clawOpen(){
+    public void clawOpen(){
         claw.setPosition(0);
         isClawOpen = true;
     }
