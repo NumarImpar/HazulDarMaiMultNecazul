@@ -1,3 +1,7 @@
 *.hprof
 **/build/
+**/build/**
 .gradle/
+.gradle/**
+.idea/
+.idea/**
